@@ -4,7 +4,8 @@
 
     /* Navbar */
     const navbar = document.getElementById('navbar');
-    const onScroll = () => navbar.classList.toggle('scrolled', window.scrollY > 60);
+    const innerPage = document.body.classList.contains('inner-page');
+    const onScroll = () => navbar.classList.toggle('scrolled', innerPage || window.scrollY > 60);
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
@@ -51,8 +52,9 @@
       const PER = 8;
       const filterBtns = document.querySelectorAll('.filter-btn');
       const grid = document.getElementById('co-grid');
-      const allCards = [...document.querySelectorAll('.co-card')];
       const pager = document.getElementById('co-pager');
+      if (!grid || !pager) return;   /* homepage shows a trimmed, static set — no filter/pager */
+      const allCards = [...document.querySelectorAll('.co-card')];
       const shuffledOrder = [...allCards].sort(() => Math.random() - .5);
       let curFilter = 'all', curPage = 1;
       const matches = c => curFilter === 'all' || c.dataset.cat === curFilter;
@@ -89,6 +91,15 @@
         btn.classList.add('active');
         curFilter = btn.dataset.filter; curPage = 1; render();
       }));
+
+      /* Honor ?cat=<filter> from the URL (deep-link from the programs cards) */
+      const wantCat = new URLSearchParams(location.search).get('cat');
+      const wantBtn = wantCat && [...filterBtns].find(b => b.dataset.filter === wantCat);
+      if (wantBtn) {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        wantBtn.classList.add('active');
+        curFilter = wantCat;
+      }
       render();
     })();
 
@@ -147,6 +158,20 @@
       window.addEventListener('resize', onScroll, { passive: true });
       window.addEventListener('load', update);
       update();
+    })();
+
+    /* News filter (internal news page) */
+    (function () {
+      const bar = document.querySelector('.news-filter');
+      if (!bar) return;
+      const cards = [...document.querySelectorAll('.news-card')];
+      const btns = [...bar.querySelectorAll('.filter-btn')];
+      btns.forEach(b => b.addEventListener('click', () => {
+        btns.forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const f = b.dataset.filter;
+        cards.forEach(c => c.classList.toggle('hide', f !== 'all' && c.dataset.cat !== f));
+      }));
     })();
 
     /* 0% equity reveal — GSAP */
