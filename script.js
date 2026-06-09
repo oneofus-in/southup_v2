@@ -50,12 +50,19 @@
     (function () {
       const PER = 8;
       const filterBtns = document.querySelectorAll('.filter-btn');
+      const grid = document.getElementById('co-grid');
       const allCards = [...document.querySelectorAll('.co-card')];
       const pager = document.getElementById('co-pager');
+      const shuffledOrder = [...allCards].sort(() => Math.random() - .5);
       let curFilter = 'all', curPage = 1;
       const matches = c => curFilter === 'all' || c.dataset.cat === curFilter;
+
+      function applyOrder(order) { order.forEach(c => grid.appendChild(c)); }
+
       function render() {
-        const list = allCards.filter(matches);
+        const source = curFilter === 'all' ? shuffledOrder : allCards;
+        applyOrder(source);
+        const list = source.filter(matches);
         const pages = Math.max(1, Math.ceil(list.length / PER));
         if (curPage > pages) curPage = pages;
         allCards.forEach(c => c.classList.add('hide'));
